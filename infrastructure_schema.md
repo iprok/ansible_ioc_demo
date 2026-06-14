@@ -50,31 +50,31 @@ graph TD
     end
 
     %% Provisioning Connections
-    A ==>|1. Proxmox API (HTTPS 8006)| PVE_Host
-    A -.->|2. SSH VM Wait (SSH 22)| GL_Host
-    A -.->|2. SSH VM Wait (SSH 22)| ZB_Host
-    A -.->|2. SSH VM Wait (SSH 22)| App1_Host
-    A -.->|2. SSH VM Wait (SSH 22)| App2_Host
+    A == "1. Proxmox API (HTTPS 8006)" ==> PVE_Host
+    A -. "2. SSH VM Wait (SSH 22)" .-> GL_Host
+    A -. "2. SSH VM Wait (SSH 22)" .-> ZB_Host
+    A -. "2. SSH VM Wait (SSH 22)" .-> App1_Host
+    A -. "2. SSH VM Wait (SSH 22)" .-> App2_Host
 
     %% Software Deployment
-    A ==>|3. Deploy GitLab & Runner| GL_Host
-    A ==>|4. Deploy Zabbix & MariaDB| ZB_Host
-    A ==>|5. Deploy Agents & Register| App1_Host
-    A ==>|5. Deploy Agents & Register| App2_Host
+    A == "3. Deploy GitLab & Runner" ==> GL_Host
+    A == "4. Deploy Zabbix & MariaDB" ==> ZB_Host
+    A == "5. Deploy Agents & Register" ==> App1_Host
+    A == "5. Deploy Agents & Register" ==> App2_Host
 
     %% Internal Communication & Monitoring Flows
-    GL_Runner -->|Register & Poll (HTTP 80)| GL_App
+    GL_Runner -- "Register & Poll (HTTP 80)" --> GL_App
     
-    ZB_Server -->|Monitor (TCP 10050)| App1_Agent
-    ZB_Server -->|Monitor (TCP 10050)| App2_Agent
-    ZB_Server -->|Monitor (TCP 10050)| GL_Runner
-    ZB_Server -->|Monitor (TCP 10050)| ZB_Host
+    ZB_Server -- "Monitor (TCP 10050)" --> App1_Agent
+    ZB_Server -- "Monitor (TCP 10050)" --> App2_Agent
+    ZB_Server -- "Monitor (TCP 10050)" --> GL_Runner
+    ZB_Server -- "Monitor (TCP 10050)" --> ZB_Host
     
     ZB_Server --- ZB_DB
     ZB_Web --- ZB_Server
 
     %% Automated Registration API Calls (from Ansible control node on behalf of hosts)
-    A -.->|Register Hosts via API (HTTP 80)| ZB_Web
+    A -. "Register Hosts via API (HTTP 80)" .-> ZB_Web
 
     %% Styling
     classDef control fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1;
