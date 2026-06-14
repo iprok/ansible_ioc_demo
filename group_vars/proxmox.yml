@@ -1,7 +1,7 @@
 ---
 # Proxmox API Credentials and Connection settings
 # These credentials allow Ansible to talk to the Proxmox API
-pve_api_host: "{{ ansible_host }}"
+pve_api_host: "{{ hostvars[pve_hypervisor_host].ansible_host | default(ansible_host) }}"
 pve_api_user: "ansible-token@pve"
 pve_api_token_id: "ansible-token-id"
 pve_api_token_secret: "{{ vault_pve_api_token_secret }}"

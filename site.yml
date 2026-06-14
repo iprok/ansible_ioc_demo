@@ -1,8 +1,8 @@
 ---
 # Phase 1: Provision Virtual Machines on ProxMox
 - name: Provision Infrastructure VMs on ProxMox Hypervisors
-  hosts: proxmox_hypervisors
-  gather_facts: true
+  hosts: vms
+  gather_facts: false
   roles:
     - role: proxmox_vm
 
