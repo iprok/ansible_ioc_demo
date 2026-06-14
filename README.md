@@ -173,3 +173,22 @@ In enterprise environments, running playbooks from local developer terminals is 
 *   **Resource Friendly**: Written in Go, it requires very little CPU and memory, making it ideal for smaller teams, edge environments, or resource-constrained deployments where AWX/Tower is too heavy.
 *   **Simple Web UI**: Offers a clean, minimal dashboard to manage keys, repositories, inventories, and task templates.
 *   **REST API**: Includes a full API for triggering playbook runs from external hooks (such as GitLab CI/CD webhooks).
+
+---
+
+## ⚡ Event-Driven Ansible (EDA)
+
+**Event-Driven Ansible** is a reactive automation framework that connects monitoring systems and other event sources with Ansible playbooks to automate troubleshooting and operational tasks.
+
+### What is it?
+Instead of running playbooks proactively (manually or on a cron schedule), EDA runs a continuous background daemon (`ansible-rulebook`) that listens for external events (such as webhooks, system logs, alerts, or message queues) and triggers automated responses when predefined conditions are met.
+
+### Key Components:
+*   **Sources**: Plugins that ingest events from monitoring platforms (like Zabbix or Prometheus Alertmanager), Git systems (like GitLab webhooks), or message queues (like Kafka).
+*   **Rulebooks**: YAML files that define the conditional logic (e.g., *if Zabbix alert says web service is down* $\rightarrow$ *then run the remediation playbook*).
+*   **Actions**: The response triggered by a rule (e.g., executing a playbook locally, or triggering a job template in Ansible Tower/AWX).
+
+### When and How to Use It:
+*   **Self-Healing / Auto-Remediation**: Automatically restart failed services, purge temporary logs when disk space is low, or rebuild crashed containers when Zabbix triggers an alert.
+*   **Automated Ticket Handling**: Automatically gather troubleshooting facts, attach logs to Jira/ServiceNow tickets, and assign them when an incident occurs.
+*   **GitOps & Continuous Deployment**: Automatically trigger infrastructure updates or redeployments when GitLab notifies of a pushed commit or merged pull request.
