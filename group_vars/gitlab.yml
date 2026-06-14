@@ -1,0 +1,11 @@
+---
+# GitLab Server configuration
+gitlab_edition: "gitlab-ce"
+gitlab_external_url: "http://gitlab.example.com"
+gitlab_root_password: "{{ vault_gitlab_root_password }}"
+
+# GitLab Runner configuration
+gitlab_runner_package: "gitlab-runner"
+gitlab_runner_coordinator_url: "{{ gitlab_external_url }}"
+gitlab_runner_registration_token: "{{ vault_gitlab_runner_registration_token }}"
+...

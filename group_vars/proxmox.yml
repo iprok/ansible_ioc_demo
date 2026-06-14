@@ -1,0 +1,15 @@
+---
+# Proxmox API Credentials and Connection settings
+# These credentials allow Ansible to talk to the Proxmox API
+pve_api_host: "{{ ansible_host }}"
+pve_api_user: "ansible-token@pve"
+pve_api_token_id: "ansible-token-id"
+pve_api_token_secret: "{{ vault_pve_api_token_secret }}"
+
+# Default configuration for provisioned VMs
+pve_default_node: "pve-01"
+pve_default_storage: "local-lvm"
+pve_default_bridge: "vmbr0"
+pve_default_template: "ubuntu-22.04-cloudinit-template"
+
+...

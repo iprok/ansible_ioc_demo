@@ -1,0 +1,74 @@
+---
+- name: Install dependencies for GitLab
+  ansible.builtin.apt:
+    name: "{{ gitlab_prerequisites }}"
+    state: present
+    update_cache: true
+  tags:
+    - install_prereqs
+    - bootstrap
+
+- name: Download and add GitLab repository installation script
+  ansible.builtin.get_url:
+    url: "https://packages.gitlab.com/install/repositories/gitlab/{{ gitlab_edition }}/script.deb.sh"
+    dest: "/tmp/gitlab_install.sh"
+    mode: '0700'
+  tags:
+    - add_repo
+    - bootstrap
+
+- name: Run GitLab repository installation script
+  ansible.builtin.command:
+    cmd: "/tmp/gitlab_install.sh"
+    creates: "/etc/apt/sources.list.d/gitlab_{{ gitlab_edition }}.list"
+  tags:
+    - add_repo
+    - bootstrap
+
+- name: Install GitLab Omnibus package
+  ansible.builtin.apt:
+    name: "{{ gitlab_edition }}"
+    state: "{{ gitlab_package_state }}"
+  tags:
+    - install_app
+    - bootstrap
+
+- name: Configure GitLab external URL and settings
+  ansible.builtin.template:
+    src: gitlab.rb.j2
+    dest: "{{ gitlab_config_file }}"
+    mode: '0600'
+  notify: Reconfigure GitLab
+  tags:
+    - configure_settings
+    - config
+
+- name: Ensure GitLab is reconfigured and running
+  ansible.builtin.command:
+    cmd: "gitlab-ctl reconfigure"
+  tags:
+    - apply_config
+    - config
+
+- name: Install GitLab Runner package
+  ansible.builtin.apt:
+    name: "{{ gitlab_runner_package }}"
+    state: present
+  tags:
+    - install_app
+    - runner
+
+- name: Register GitLab Runner with coordinator
+  ansible.builtin.command:
+    cmd: >
+      gitlab-runner register
+      --non-interactive
+      --url "{{ gitlab_runner_coordinator_url }}"
+      --registration-token "{{ gitlab_runner_registration_token }}"
+      --description "{{ gitlab_runner_description }}"
+      --executor "{{ gitlab_runner_executor }}"
+    creates: /etc/gitlab-runner/config.toml
+  tags:
+    - setup_runner
+    - runner
+...

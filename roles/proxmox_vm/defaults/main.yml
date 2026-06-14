@@ -1,0 +1,12 @@
+---
+# Default settings if not overridden in group_vars
+pve_node: "{{ pve_default_node | default('pve-01') }}"
+pve_storage: "{{ pve_default_storage | default('local-lvm') }}"
+pve_bridge: "{{ pve_default_bridge | default('vmbr0') }}"
+pve_template: "{{ pve_default_template | default('ubuntu-22.04-cloudinit-template') }}"
+
+# Default VM sizing parameters
+pve_vm_cores: 1
+pve_vm_ram: 1024
+pve_vm_disk_size: "10G"
+...

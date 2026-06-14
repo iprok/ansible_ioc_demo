@@ -1,0 +1,17 @@
+---
+# Default configurations for Zabbix Server role
+zabbix_db_host: "localhost"
+zabbix_server_package_state: present
+
+# Zabbix Server required packages
+zabbix_server_packages:
+  - zabbix-server-mysql
+  - zabbix-frontend-php
+  - zabbix-apache-conf
+  - zabbix-sql-scripts
+
+# Database dependencies
+zabbix_db_packages:
+  - mariadb-server
+  - python3-pymysql
+...

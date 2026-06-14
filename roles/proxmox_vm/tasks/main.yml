@@ -1,0 +1,49 @@
+---
+- name: Clone virtual machine from template
+  community.proxmox.proxmox_kvm: &pve_kvm_default
+    api_host: "{{ pve_api_host }}"
+    api_user: "{{ pve_api_user }}"
+    api_token_id: "{{ pve_api_token_id }}"
+    api_token_secret: "{{ pve_api_token_secret }}"
+    node: "{{ pve_node }}"
+    vmid: "{{ hostvars[item].vmid }}"
+    name: "{{ item.split('.')[0] }}"
+    clone: "{{ pve_template }}"
+    timeout: 300
+    state: present
+  loop: "{{ groups['vms'] }}"
+  tags:
+    - vm_clone
+    - provision
+
+- name: Configure virtual machine hardware settings
+  community.proxmox.proxmox_kvm:
+    <<: *pve_kvm_default
+    cores: "{{ hostvars[item].vm_cores | default(pve_vm_cores) }}"
+    memory: "{{ hostvars[item].vm_ram | default(pve_vm_ram) }}"
+    update: true
+  loop: "{{ groups['vms'] }}"
+  tags:
+    - vm_config
+    - provision
+
+- name: Configure VM cloud-init networking
+  community.proxmox.proxmox_kvm:
+    <<: *pve_kvm_default
+    ipconfig:
+      ipconfig0: "ip={{ hostvars[item].ansible_host }}/{{ hostvars[item].vm_prefix | default(24) }},gw={{ hostvars[item].vm_gateway }}"
+    update: true
+  loop: "{{ groups['vms'] }}"
+  tags:
+    - vm_network
+    - provision
+
+- name: Ensure virtual machines are started
+  community.proxmox.proxmox_kvm:
+    <<: *pve_kvm_default
+    state: started
+  loop: "{{ groups['vms'] }}"
+  tags:
+    - vm_start
+    - provision
+...

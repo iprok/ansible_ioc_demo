@@ -1,0 +1,41 @@
+---
+# Phase 1: Provision Virtual Machines on ProxMox
+- name: Provision Infrastructure VMs on ProxMox Hypervisors
+  hosts: proxmox_hypervisors
+  gather_facts: true
+  roles:
+    - role: proxmox_vm
+
+# Phase 2: Wait for SSH connection to become active on newly created VMs
+- name: Wait for SSH Connectivity on New VMs
+  hosts: vms
+  gather_facts: false
+  tasks:
+    - name: Wait for SSH port to be open
+      ansible.builtin.wait_for_connection:
+        delay: 10
+        timeout: 300
+      tags:
+        - wait_ssh
+
+# Phase 3: Install and configure GitLab Server
+- name: Deploy GitLab Server
+  hosts: gitlab_servers
+  gather_facts: true
+  roles:
+    - role: gitlab_server
+
+# Phase 4: Install and configure Zabbix Server
+- name: Deploy Zabbix Monitoring Server
+  hosts: zabbix_servers
+  gather_facts: true
+  roles:
+    - role: zabbix_server
+
+# Phase 5: Configure Zabbix Agents on all VM nodes and register them
+- name: Configure Zabbix Agents and Register Monitored Nodes
+  hosts: monitored_nodes
+  gather_facts: true
+  roles:
+    - role: zabbix_agent
+...

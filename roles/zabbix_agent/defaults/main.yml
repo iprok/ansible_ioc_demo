@@ -1,0 +1,6 @@
+---
+# Default configurations for Zabbix Agent role
+zabbix_agent_package: "zabbix-agent"
+zabbix_agent_config_path: "/etc/zabbix/zabbix_agentd.conf"
+zabbix_agent_state: present
+...

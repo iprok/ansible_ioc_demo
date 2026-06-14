@@ -1,0 +1,109 @@
+---
+- name: Install MariaDB database server and Python dependencies
+  ansible.builtin.apt:
+    name: "{{ zabbix_db_packages }}"
+    state: present
+    update_cache: true
+  tags:
+    - install_db
+    - bootstrap
+
+- name: Ensure MariaDB service is started and enabled
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: true
+  tags:
+    - start_services
+    - bootstrap
+
+- name: Create Zabbix database
+  community.mysql.mysql_db:
+    name: "{{ zabbix_db_name }}"
+    state: present
+    login_user: root
+    login_password: "{{ zabbix_db_root_password | default('') }}"
+  tags:
+    - configure_db
+    - config
+
+- name: Create Zabbix database user
+  community.mysql.mysql_user:
+    name: "{{ zabbix_db_user }}"
+    password: "{{ zabbix_db_password }}"
+    priv: "{{ zabbix_db_name }}.*:ALL"
+    state: present
+    login_user: root
+    login_password: "{{ zabbix_db_root_password | default('') }}"
+  tags:
+    - configure_db
+    - config
+
+- name: Download Zabbix official repository release package
+  ansible.builtin.get_url:
+    url: "{{ zabbix_repo_url }}"
+    dest: "/tmp/zabbix-release.deb"
+    mode: '0644'
+  tags:
+    - add_repo
+    - bootstrap
+
+- name: Install Zabbix official repository
+  ansible.builtin.apt:
+    deb: "/tmp/zabbix-release.deb"
+  tags:
+    - add_repo
+    - bootstrap
+
+- name: Install Zabbix server, frontend, and SQL scripts
+  ansible.builtin.apt:
+    name: "{{ zabbix_server_packages }}"
+    state: "{{ zabbix_server_package_state }}"
+    update_cache: true
+  tags:
+    - install_app
+    - bootstrap
+
+- name: Check if Zabbix database tables are already imported
+  community.mysql.mysql_query:
+    login_user: "{{ zabbix_db_user }}"
+    login_password: "{{ zabbix_db_password }}"
+    login_db: "{{ zabbix_db_name }}"
+    query: "SHOW TABLES;"
+  register: db_tables
+  tags:
+    - check_db
+    - config
+
+- name: Import Zabbix server initial database schema
+  ansible.builtin.shell:
+    cmd: "zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql -u{{ zabbix_db_user }} -p'{{ zabbix_db_password }}' {{ zabbix_db_name }}"
+  when: db_tables.query_result[0] | length == 0
+  tags:
+    - import_schema
+    - config
+
+- name: Configure Zabbix Server settings from template
+  ansible.builtin.template:
+    src: zabbix_server.conf.j2
+    dest: /etc/zabbix/zabbix_server.conf
+    owner: zabbix
+    group: zabbix
+    mode: '0600'
+  notify: Restart Zabbix Server
+  tags:
+    - configure_settings
+    - config
+
+- name: Ensure Zabbix services are running and enabled
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - zabbix-server
+    - apache2
+  tags:
+    - start_services
+    - config
+...

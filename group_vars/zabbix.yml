@@ -1,0 +1,20 @@
+---
+# Zabbix Server & Agent global versioning
+zabbix_version: "7.0"
+zabbix_repo_url: "https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_7.0-1+ubuntu22.04_all.deb"
+
+# Zabbix Server database backend details (deployed on the same VM for this demo)
+zabbix_db_name: "zabbix"
+zabbix_db_user: "zabbix"
+zabbix_db_password: "{{ vault_zabbix_db_password }}"
+zabbix_db_root_password: "{{ vault_zabbix_db_root_password }}"
+
+# Zabbix API credentials for automated host registration
+zabbix_api_url: "http://zabbix.example.com/api_jsonrpc.php"
+zabbix_api_user: "Admin"
+zabbix_api_password: "{{ vault_zabbix_api_password }}"
+
+# Configuration for Zabbix Agents to connect back to the Server
+zabbix_server_ip: "192.168.1.60"
+zabbix_agent_listen_port: 10050
+...

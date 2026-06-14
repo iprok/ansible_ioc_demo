@@ -1,0 +1,16 @@
+# Zabbix Agent configuration managed by Ansible
+PidFile=/var/run/zabbix/zabbix_agentd.pid
+LogFile=/var/log/zabbix/zabbix_agentd.log
+LogFileSize=0
+
+# Server settings
+Server={{ zabbix_server_ip }}
+ServerActive={{ zabbix_server_ip }}
+
+# Host identification
+Hostname={{ inventory_hostname }}
+
+# Listen configuration
+ListenPort={{ zabbix_agent_listen_port | default(10050) }}
+
+Include=/etc/zabbix/zabbix_agentd.d/*.conf

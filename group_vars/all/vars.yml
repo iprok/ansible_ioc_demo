@@ -1,0 +1,14 @@
+---
+# Global variables applied to all hosts
+ansible_user: admin_deploy
+ansible_ssh_private_key_file: ~/.ssh/id_ed25519_deploy
+
+# Base system settings
+system_timezone: "Europe/Sofia"
+system_dns_servers:
+  - 1.1.1.1
+  - 8.8.8.8
+
+# Organization settings
+company_domain: "example.com"
+...

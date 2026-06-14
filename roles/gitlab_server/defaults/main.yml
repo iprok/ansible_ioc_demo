@@ -1,0 +1,14 @@
+---
+# Default configurations for GitLab Server role
+gitlab_prerequisites:
+  - curl
+  - openssh-server
+  - ca-certificates
+  - tzdata
+  - perl
+
+gitlab_package_state: present
+gitlab_config_file: /etc/gitlab/gitlab.rb
+gitlab_runner_description: "Shared Executor Runner on ProxMox"
+gitlab_runner_executor: "shell"
+...

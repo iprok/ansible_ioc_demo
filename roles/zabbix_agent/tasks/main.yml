@@ -1,0 +1,72 @@
+---
+- name: Download Zabbix repository release package
+  ansible.builtin.get_url:
+    url: "{{ zabbix_repo_url }}"
+    dest: "/tmp/zabbix-release.deb"
+    mode: '0644'
+  tags:
+    - add_repo
+    - bootstrap
+
+- name: Install Zabbix repository release
+  ansible.builtin.apt:
+    deb: "/tmp/zabbix-release.deb"
+  tags:
+    - add_repo
+    - bootstrap
+
+- name: Install Zabbix Agent package
+  ansible.builtin.apt:
+    name: "{{ zabbix_agent_package }}"
+    state: "{{ zabbix_agent_state }}"
+    update_cache: true
+  tags:
+    - install_agent
+    - bootstrap
+
+- name: Configure Zabbix Agent configuration file
+  ansible.builtin.template:
+    src: zabbix_agentd.conf.j2
+    dest: "{{ zabbix_agent_config_path }}"
+    mode: '0644'
+  notify: Restart Zabbix Agent
+  tags:
+    - configure_agent
+    - config
+
+- name: Ensure Zabbix Agent is running and enabled
+  ansible.builtin.service:
+    name: zabbix-agent
+    state: started
+    enabled: true
+  tags:
+    - start_agent
+    - config
+
+- name: Register host in Zabbix Server via API
+  community.zabbix.zabbix_host:
+    ansible_connection: local
+    server_url: "{{ zabbix_api_url }}"
+    login_user: "{{ zabbix_api_user }}"
+    login_password: "{{ zabbix_api_password }}"
+    host_name: "{{ inventory_hostname }}"
+    visible_name: "{{ inventory_hostname }}"
+    host_groups:
+      - Linux servers
+    link_templates:
+      - Linux by Zabbix agent
+    interfaces:
+      - type: 1
+        main: 1
+        useip: 1
+        ip: "{{ ansible_host }}"
+        dns: ""
+        port: "{{ zabbix_agent_listen_port }}"
+    status: enabled
+    state: present
+  delegate_to: localhost
+  run_once: false
+  tags:
+    - register_monitoring
+    - config
+...

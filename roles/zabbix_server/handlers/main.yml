@@ -1,0 +1,6 @@
+---
+- name: Restart Zabbix Server
+  ansible.builtin.service:
+    name: zabbix-server
+    state: restarted
+...
