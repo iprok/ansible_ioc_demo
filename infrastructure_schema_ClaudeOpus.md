@@ -40,36 +40,31 @@
 
 ```mermaid
 graph TD
-    subgraph CLUSTER["🖥️ Proxmox Cluster — 192.168.1.0/24"]
+    subgraph CLUSTER["Proxmox Cluster - 192.168.1.0/24"]
         direction TB
 
-        subgraph PVE1["<b>pve-01.example.com</b><br/>192.168.1.10 · Hypervisor"]
+        subgraph PVE1["pve-01.example.com - 192.168.1.10"]
             direction TB
-            VM_GITLAB["<b>gitlab-vm</b><br/>192.168.1.50 · VMID 150<br/>2 CPU · 4 GB RAM · 50G Disk<br/>🦊 GitLab CE"]
-            VM_APP1["<b>app-vm-01</b><br/>192.168.1.71 · VMID 171<br/>1 CPU · 1 GB RAM · 10G Disk<br/>⚙️ App Server"]
+            VM_GITLAB["gitlab-vm\n192.168.1.50 | VMID 150\n2 CPU | 4 GB RAM | 50G Disk\nGitLab CE"]
+            VM_APP1["app-vm-01\n192.168.1.71 | VMID 171\n1 CPU | 1 GB RAM | 10G Disk\nApp Server"]
         end
 
-        subgraph PVE2["<b>pve-02.example.com</b><br/>192.168.1.11 · Hypervisor"]
+        subgraph PVE2["pve-02.example.com - 192.168.1.11"]
             direction TB
-            VM_ZABBIX["<b>zabbix-vm</b><br/>192.168.1.60 · VMID 160<br/>2 CPU · 2 GB RAM · 20G Disk<br/>📊 Zabbix 7.0"]
-            VM_APP2["<b>app-vm-02</b><br/>192.168.1.72 · VMID 172<br/>1 CPU · 1 GB RAM · 10G Disk<br/>⚙️ App Server"]
+            VM_ZABBIX["zabbix-vm\n192.168.1.60 | VMID 160\n2 CPU | 2 GB RAM | 20G Disk\nZabbix 7.0"]
+            VM_APP2["app-vm-02\n192.168.1.72 | VMID 172\n1 CPU | 1 GB RAM | 10G Disk\nApp Server"]
         end
     end
 
-    PVE1 -. "delegates VM operations" .-> VM_GITLAB
-    PVE1 -. "delegates VM operations" .-> VM_APP1
-    PVE2 -. "delegates VM operations" .-> VM_ZABBIX
-    PVE2 -. "delegates VM operations" .-> VM_APP2
+    VM_ZABBIX -. "agent port 10050" .-> VM_GITLAB
+    VM_ZABBIX -. "agent port 10050" .-> VM_APP1
+    VM_ZABBIX -. "agent port 10050" .-> VM_APP2
 
-    VM_ZABBIX -- "agent → server\nport 10050" --- VM_GITLAB
-    VM_ZABBIX -- "agent → server\nport 10050" --- VM_APP1
-    VM_ZABBIX -- "agent → server\nport 10050" --- VM_APP2
-
-    classDef hypervisor fill:#1a1a2e,stroke:#16213e,stroke-width:2px,color:#e94560,font-weight:bold
-    classDef gitlab fill:#0f3460,stroke:#533483,stroke-width:2px,color:#e2e2e2
-    classDef zabbix fill:#1b1b2f,stroke:#d83131,stroke-width:2px,color:#e2e2e2
-    classDef app fill:#162447,stroke:#1f4068,stroke-width:2px,color:#e2e2e2
-    classDef cluster fill:#0a0a23,stroke:#533483,stroke-width:3px,color:#e2e2e2
+    classDef hypervisor fill:#e8f4f8,stroke:#2980b9,stroke-width:2px,color:#1a1a1a,font-weight:bold
+    classDef gitlab fill:#fdf2e9,stroke:#e67e22,stroke-width:2px,color:#1a1a1a
+    classDef zabbix fill:#fdedec,stroke:#e74c3c,stroke-width:2px,color:#1a1a1a
+    classDef app fill:#eafaf1,stroke:#27ae60,stroke-width:2px,color:#1a1a1a
+    classDef cluster fill:#f4f6f7,stroke:#5d6d7e,stroke-width:3px,color:#1a1a1a
 
     class PVE1,PVE2 hypervisor
     class VM_GITLAB gitlab
