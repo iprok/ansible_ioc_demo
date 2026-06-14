@@ -48,7 +48,6 @@ The [site.yml](site.yml) master playbook executes configurations in sequence:
 For enterprise compliance, all passwords, API keys, and private tokens are isolated from the plaintext code and encrypted in [group_vars/all/vault.yml](group_vars/all/vault.yml).
 
 ### 1. Externalizing Decryption Keys
-
 To avoid storing decryption passwords in plaintext files on disks, this repository is configured in [ansible.cfg](ansible.cfg) to query an executable lookup script:
 
 ```ini
@@ -57,7 +56,6 @@ vault_password_file = ./scripts/vault-bws-client.sh
 ```
 
 ### 2. Integration with Bitwarden Secrets Manager (`bws`)
-
 The script [scripts/vault-bws-client.sh](scripts/vault-bws-client.sh) uses the Bitwarden Secrets Manager CLI (`bws`) to fetch the decryption password on-demand using its API Token:
 
 ```bash
@@ -68,7 +66,6 @@ bws secret get "$SECRET_UUID" | jq -r '.value'
 ```
 
 ### 3. Execution
-
 To run the playbooks, export your secure access token in your terminal session or CI/CD environment and start the execution:
 
 ```bash
@@ -85,7 +82,6 @@ Ansible will query Bitwarden to decrypt secrets in memory on-the-fly without exp
 Ansible allows you to generate visual and interactive documentation of your infrastructure directly from the codebase, ensuring that your network diagrams and server configurations never fall out of date.
 
 ### 1. Host Relationships and Groups (Inventory Tree)
-
 You can output a hierarchical visualization of all your host groups and server relationships using `ansible-inventory`:
 
 ```bash
@@ -93,11 +89,11 @@ ansible-inventory --graph
 ```
 
 **Example output:**
-
 ```text
 @all:
   |--@proxmox_hypervisors:
   |  |--pve-01.example.com
+  |  |--pve-02.example.com
   |--@vms:
   |  |--@gitlab_servers:
   |  |  |--gitlab-vm.example.com
@@ -114,13 +110,66 @@ ansible-inventory --graph
 ```
 
 ### 1.1 Dynamic Inventories (ProxMox, Zabbix, and Custom Scripts)
-
-While this demo uses a static [hosts.yml](hosts.yml) file, enterprise environments typically replace static inventories with **Dynamic Inventories**.
+While this demo uses a static [hosts.yml](hosts.yml) file, enterprise environments typically replace static inventories with **Dynamic Inventories**. 
 
 Ansible can query external systems at runtime to generate the list of target hosts automatically:
-
-* **ProxMox Integration**: The `community.proxmox.proxmox` inventory plugin can query your hypervisors directly to build groups of active virtual machines on-the-fly.
-* **Zabbix Integration**: You can use the `community.zabbix.zabbix` inventory plugin to query Zabbix hosts, host groups, and statuses to dynamically build your target node list.
-* **Custom Dynamic Inventories**: If you have a legacy database or custom API, you can write a simple python or shell script that outputs a standard JSON structure of groups and variables. If you pass this executable script to Ansible as an inventory (`ansible-playbook -i custom_inventory.py site.yml`), Ansible will execute it and use the dynamic output.
+*   **ProxMox Integration**: The `community.proxmox.proxmox` inventory plugin can query your hypervisors directly to build groups of active virtual machines on-the-fly.
+*   **Zabbix Integration**: You can use the `community.zabbix.zabbix` inventory plugin to query Zabbix hosts, host groups, and statuses to dynamically build your target node list.
+*   **Custom Dynamic Inventories**: If you have a legacy database or custom API, you can write a simple python or shell script that outputs a standard JSON structure of groups and variables. If you pass this executable script to Ansible as an inventory (`ansible-playbook -i custom_inventory.py site.yml`), Ansible will execute it and use the dynamic output.
 
 This guarantees that your playbooks always target the exact active configuration without requiring manual files updates.
+
+### 2. Execution Flowchart (Playbook Graphing)
+To visualize the execution order, roles, and tasks defined in your playbook, use the **`ansible-playbook-grapher`** tool.
+
+This utility parses `site.yml` and renders an SVG or PNG flowchart:
+
+```bash
+# Install the visualizer tool
+pip install ansible-playbook-grapher
+
+# Generate an SVG graph of the playbook with collapsible nodes
+ansible-playbook-grapher site.yml --include-role-tasks --collapsible-nodes -o infrastructure_flow.svg
+```
+
+The resulting file [infrastructure_flow.svg](infrastructure_flow.svg) can be opened in any web browser to view an interactive flowchart showing:
+* Target hosts for each phase.
+* Triggered roles.
+* Tasks executed sequentially.
+* Tags attached to tasks for selective execution.
+
+### 3. Role and Variables Documentation
+To document input variables, defaults, and tags of your roles automatically, you can use **`ansible-doctor`**. It parses your `roles/` directory and creates readable markdown documentation:
+
+```bash
+# Generate markdown documentation for roles
+pip install ansible-doctor
+ansible-doctor -f -r roles/
+```
+
+### 4. Dynamic Infrastructure Fact Audit
+Instead of documenting system configurations manually, you can query live facts from all targets in a single run:
+
+```bash
+ansible all -m setup --tree /tmp/facts_documentation
+```
+Ansible gathers detailed JSON parameters from each machine (OS version, disk allocation, network interfaces, CPU cores, RAM). These logs can be formatted into an HTML summary report to view live asset specifications in one click.
+
+---
+
+## 🏢 Centralized Execution Platforms (Ansible Tower / AWX & Semaphore)
+
+In enterprise environments, running playbooks from local developer terminals is usually discouraged. Instead, centralized automation platforms are used to orchestrate runs, manage credentials, and audit executions.
+
+### 1. Red Hat Ansible Tower (AWX / Automation Controller)
+**Ansible Tower** (and its open-source upstream version **AWX**, now officially called **Automation Controller**) is the standard enterprise control plane for Ansible.
+*   **Web Console & REST API**: Provides a graphic user interface and REST API to trigger, monitor, and schedule playbooks.
+*   **Role-Based Access Control (RBAC)**: Restricts who can execute specific playbooks on specific host groups.
+*   **Centralized Credential Store**: Integrates with external vaults (like HashiCorp Vault, CyberArk, or Bitwarden) to inject SSH keys and vault credentials securely into execution contexts at runtime, without developers ever seeing them.
+*   **Audit Logging**: Logs every task execution and output for enterprise compliance.
+
+### 2. Ansible Semaphore
+**Ansible Semaphore** is a modern, lightweight, open-source web UI alternative to Ansible Tower.
+*   **Resource Friendly**: Written in Go, it requires very little CPU and memory, making it ideal for smaller teams, edge environments, or resource-constrained deployments where AWX/Tower is too heavy.
+*   **Simple Web UI**: Offers a clean, minimal dashboard to manage keys, repositories, inventories, and task templates.
+*   **REST API**: Includes a full API for triggering playbook runs from external hooks (such as GitLab CI/CD webhooks).
